@@ -1,82 +1,51 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Moon, Sun, Code, Layout, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { solarizedlight, solarizedDarkAtom } from 'react-syntax-highlighter/dist/esm/styles/prism'
+
+type ComponentInfo = {
+  name: string;
+  component: React.FC;
+  code: string;
+};
+
+const componentPaths = [
+  'dashboard', // Ensure this path matches your actual component filenames
+];
 
 export default function Component() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [showCode, setShowCode] = useState(false)
   const [currentComponent, setCurrentComponent] = useState(0)
+  const [components, setComponents] = useState<ComponentInfo[]>([]);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode)
   const toggleView = () => setShowCode(!showCode)
 
-  const components = [
-    { name: 'Dashboard', code: `
-import React from 'react';
-import { Chart, UserList, ActivityFeed, PerformanceMetrics } from './components';
+  useEffect(() => {
+    const loadComponents = async () => {
+      try {
+        const loadedComponents: ComponentInfo[] = await Promise.all(componentPaths.map(async (path) => {
+          const module = await import(`../components/new/${path}.tsx`);
+          return { 
+            name: path, 
+            component: module.default as React.FC,
+            code: module.code as string || "" 
+          };
+        }));
+        setComponents(loadedComponents);
+      } catch (error) {
+        console.error("Error loading components:", error);
+      }
+    };
 
-export const Dashboard = () => {
-  return (
-    <div className="dashboard">
-      <Chart />
-      <UserList />
-      <ActivityFeed />
-      <PerformanceMetrics />
-    </div>
-  );
-};`
-    },
-    { name: 'User Profile', code: `
-import React from 'react';
-import { Avatar, UserInfo, ActivityTimeline, Settings } from './components';
-
-export const UserProfile = () => {
-  return (
-    <div className="user-profile">
-      <Avatar />
-      <UserInfo />
-      <ActivityTimeline />
-      <Settings />
-    </div>
-  );
-};`
-    },
-    { name: 'Analytics', code: `
-import React from 'react';
-import { LineChart, BarChart, PieChart, DataTable } from './components';
-
-export const Analytics = () => {
-  return (
-    <div className="analytics">
-      <LineChart />
-      <BarChart />
-      <PieChart />
-      <DataTable />
-    </div>
-  );
-};`
-    },
-    { name: 'E-commerce', code: `
-import React from 'react';
-import { ProductGrid, ShoppingCart, Checkout, OrderHistory } from './components';
-
-export const Ecommerce = () => {
-  return (
-    <div className="e-commerce">
-      <ProductGrid />
-      <ShoppingCart />
-      <Checkout />
-      <OrderHistory />
-    </div>
-  );
-};`
-    }
-  ]
+    loadComponents();
+  }, []);
 
   const nextComponent = () => {
     setCurrentComponent((prev) => (prev + 1) % components.length)
@@ -85,6 +54,8 @@ export const Ecommerce = () => {
   const prevComponent = () => {
     setCurrentComponent((prev) => (prev - 1 + components.length) % components.length)
   }
+
+  const CurrentComponent = components[currentComponent]?.component;
 
   return (
     <div className={`min-h-screen p-8 transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -121,26 +92,16 @@ export const Ecommerce = () => {
         <Card className={`w-full aspect-video ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <CardContent className="p-6 h-full">
             {showCode ? (
-              <pre className={`h-full overflow-auto p-4 rounded ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-100 text-gray-900'}`}>
-                <code>{components[currentComponent].code}</code>
-              </pre>
+              <SyntaxHighlighter 
+                language="typescript" 
+                style={isDarkMode ? solarizedDarkAtom : solarizedlight}
+                customStyle={{ height: '100%', overflow: 'auto', borderRadius: '0.5rem' }}
+              >
+                {components[currentComponent]?.code}
+              </SyntaxHighlighter>
             ) : (
               <div className="h-full flex flex-col items-center justify-center space-y-4">
-                <div className={`text-4xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                  {components[currentComponent].name} Component
-                </div>
-                <Tabs defaultValue="preview" className="w-full max-w-md">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="preview">Preview</TabsTrigger>
-                    <TabsTrigger value="props">Props</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="preview" className="p-4 border rounded-md mt-2">
-                    Preview of {components[currentComponent].name} component
-                  </TabsContent>
-                  <TabsContent value="props" className="p-4 border rounded-md mt-2">
-                    Props for {components[currentComponent].name} component
-                  </TabsContent>
-                </Tabs>
+                {CurrentComponent && <CurrentComponent />}
               </div>
             )}
           </CardContent>
