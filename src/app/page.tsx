@@ -59,7 +59,6 @@ export default function Component() {
 
   return (
     <div className={`min-h-screen p-8 transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Dotted background */}
       <div
         className="fixed inset-0 z-0 opacity-10"
         style={{
@@ -75,7 +74,7 @@ export default function Component() {
               OmorfosUI
             </span>
           </h1>
-          <p className={`text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Explore the universe of modern web components</p>
+          <p className={`text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Explore the universe of modern next/shadcn web components</p>
         </header>
 
         <div className="flex justify-between items-center">
@@ -84,7 +83,7 @@ export default function Component() {
           </Button>
           <div className="flex items-center space-x-2">
             <Sun className="h-4 w-4" />
-            <Switch checked={isDarkMode} onCheckedChange={toggleTheme} />
+            <Switch checked={isDarkMode} onCheckedChange={toggleTheme} className={`${isDarkMode ? 'bg-slate-300' : 'bg-slate-200'}`} />
             <Moon className="h-4 w-4" />
           </div>
         </div>
@@ -95,7 +94,13 @@ export default function Component() {
               <SyntaxHighlighter 
                 language="typescript" 
                 style={isDarkMode ? solarizedDarkAtom : solarizedlight}
-                customStyle={{ height: '100%', overflow: 'auto', borderRadius: '0.5rem' }}
+                customStyle={{
+                  backgroundColor: 'transparent', 
+                  background: 'transparent',
+                  height: '100%',
+                  overflow: 'auto',
+                  borderRadius: '0.5rem',
+                }}
               >
                 {components[currentComponent]?.code}
               </SyntaxHighlighter>
